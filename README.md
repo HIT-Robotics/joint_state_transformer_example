@@ -1,16 +1,13 @@
-# joint_state_transformer_example
+# constraint_to_gazebo_example
 <p align="center">
   <img src="docs/logos/autonox_Robotics_Logo.png" height="60" style="margin-right: 40px;">
   <img src="docs/logos/hhn_logo.png" height="80">
 </p>
 
 
-This repository demonstrates the usage of the **joint_state_transformer** for constrained robot kinematics. It enables the transformation of joint states for robots with closed kinematic chains and passive joints.  Each robot is provided as its own package. The robot-specific URDF and meshes are provided in the **descriptions** package.
+This repository demonstrates the usage of the **constraint_to_gazebo** for constrained robot kinematics. It closes the loops created with **constraint** elements of the URDF.  Each robot is provided as its own package. The robot-specific URDF and meshes are provided in the **descriptions** package.
 
-The *joint_state_transformer* provides forward and inverse kinematics for closed-loop systems:
-
-- Inverse kinematics: end-effector trajectory -> **joint_state_transformer** -> active joint trajectory
-- Forward kinematics: measured joint states (subset of all joints) -> **joint_state_transformer** -> full joint state (including passive joints)
+The *constraint_to_gazebo* closes the loops and helps to create the gazebo specific elements for simulation.
 
 The following robots are supported at the moment:
 
@@ -26,6 +23,8 @@ The repository includes the following packages:
 - **robot_model**: solves constraint equations for closed-loop structures
 - **joint_state_transformer** package: uses the **robot_model** to transform the trajectory and calculate the passive angles
 - **descriptions**: provides the URDF files and meshes for the robots
+- **constraint_to_gazeob**: scripts to close the loops of an URDF using the **robot_model** package and create the gazebo specific elements
+- **bringup**: Package to close the loops and start gazebo, and the ros packages for the robot using a choosen robot specific MoveIt-Package
 - robot-specific MoveIt packages in the demo folder: provide a simple demonstration with RViz using the demo.launch.py
 
 ## Prerequisites
@@ -54,17 +53,13 @@ The repository includes the following packages:
    source install/setup.bash
    ```
 
-4. Inside the container: Start joint_state_transformer
+4. Inside the container: Start the simulation using the bringup package
 
    ```bash
-   ros2 launch joint_state_transformer joint_state_transformer.launch.py
+   ros2 launch bringup sim.launch.py moveit_config_package:=<moveit_config_package_name>
    ```
 
-5. Inside the container: Start the demo
 
-   ```bash
-   ros2 launch <chosen_robot_model> demo.launch.py
-   ```
 
 ## Roadmap
 
