@@ -13,3 +13,6 @@
 [submodule "src/pinocchio"]
 	path = src/pinocchio
 	url = https://github.com/stack-of-tasks/pinocchio.git
+[submodule "src/constraint_to_gazebo"]
+	path = src/constraint_to_gazebo
+	url = https://github.com/HIT-Robotics/constraint_to_gazebo.git
