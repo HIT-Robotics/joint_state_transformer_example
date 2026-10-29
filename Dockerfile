@@ -54,6 +54,9 @@ RUN apt-get update && apt-get install -y \
     ros-${ROS_DISTRO}-joint-trajectory-controller \
     ros-${ROS_DISTRO}-joint-state-broadcaster \
     ros-${ROS_DISTRO}-xacro \
+    ros-${ROS_DISTRO}-ros-gz \
+    ros-${ROS_DISTRO}-gz-ros2-control \
+    ros-${ROS_DISTRO}-rqt-tf-tree \
     && rm -rf /var/lib/apt/lists/*
 
 # Build limits (safe defaults)

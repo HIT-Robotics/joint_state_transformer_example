@@ -56,7 +56,7 @@ The repository includes the following packages:
 4. Inside the container: Start the simulation using the bringup package
 
    ```bash
-   ros2 launch bringup sim.launch.py moveit_config_package:=<moveit_config_package_name>
+   ros2 launch bringup sim.launch.py moveit_config_package:=<moveit_config_package_name> joint_state_transformer_input_action:=<moveit_output_action>
    ```
 
 

@@ -1,6 +1,6 @@
 services:
   ros:
-    image: joint_state_transformer_example
+    image: constraint_to_gazebo_example
     build:
       context: .
       dockerfile: ./Dockerfile
