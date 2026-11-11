@@ -19,12 +19,9 @@ install(DIRECTORY
   meshes
   DESTINATION share/${PROJECT_NAME})
 
-# Install Python modules
-#ament_python_install_package(${PROJECT_NAME})
-# Install Python executables
-#install(PROGRAMS
-#  scripts/py_node.py
-#  DESTINATION lib/${PROJECT_NAME}
-#  )
+  
+# add hooks for the package
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in")
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in")
 
 ament_package()

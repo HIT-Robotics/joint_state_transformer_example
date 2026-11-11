@@ -176,9 +176,6 @@ def launch_setup(context, *args, **kwargs):
     # Generate altered descriptions
     ros_desc, gazebo_desc, robot_name = createDescriptions(urdf_file)
 
-    if not moveit_config_package:
-        moveit_config_package = f"{robot_name}_moveit_config"
-
     # Dump descriptions to temporary URDF files
     logging.info('bringup: create dummy urdf files')
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.urdf') as ros_urdf_file:
@@ -195,19 +192,6 @@ def launch_setup(context, *args, **kwargs):
         MoveItConfigsBuilder(robot_name, package_name=moveit_config_package)
         .robot_description(file_path=ros_desc_path)
         .to_moveit_configs()
-    )
-
-    # 2. Environment Variable for Gazebo mesh resolution
-    logging.info('bringup: update gazbo environment variables')
-    descriptions_share = get_package_share_directory('descriptions')
-    gazebo_model_path = os.path.dirname(descriptions_share)
-    existing_gz_path = os.environ.get('GZ_SIM_RESOURCE_PATH', '')
-    gz_resource_path = f"{gazebo_model_path}:{existing_gz_path}" if existing_gz_path else gazebo_model_path
-    actions.append(
-        SetEnvironmentVariable(
-            name='GZ_SIM_RESOURCE_PATH',
-            value=gz_resource_path,
-        )
     )
 
     # 2. Robot State Publisher (using altered ros_desc)
