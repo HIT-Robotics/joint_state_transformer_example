@@ -233,8 +233,8 @@ def launch_setup(context, *args, **kwargs):
     # 3. Gazebo Sim
     logging.info('bringup: start gazebo')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    pkg_bringup_2 = get_package_share_directory('bringup')
-    world_path = os.path.join(pkg_bringup_2, 'worlds', 'world.sdf')
+    pkg_bringup = get_package_share_directory('bringup')
+    world_path = os.path.join(pkg_bringup, 'worlds', 'world.sdf')
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
