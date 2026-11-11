@@ -31,21 +31,12 @@ from constraint_to_gazebo.close_loop import close_loop
 from constraint_to_gazebo.add_ros2_control import add_ros2_control, add_gz_ros2_control
 
 
-def resolve_urdf(urdf_file, moveit_config_package):
+def resolve_urdf(moveit_config_package):
     """
     Resolves the raw robot URDF/ARDF model file.
-    If 'urdf_file' is explicitly given, returns it.
-    Otherwise, inspects 'config/*.urdf.xacro' in the MoveIt configuration package,
+    Inspects 'config/*.urdf.xacro' in the MoveIt configuration package,
     finds the <xacro:include> referencing the .urdf or .ardf model, and resolves its path.
     """
-    if urdf_file and os.path.exists(urdf_file):
-        return urdf_file
-
-    if not moveit_config_package:
-        raise ValueError(
-            "Either 'urdf_file' or 'moveit_config_package' must be provided."
-        )
-
     pkg_share = get_package_share_directory(moveit_config_package)
     config_dir = os.path.join(pkg_share, 'config')
 
@@ -176,12 +167,11 @@ def createDescriptions(urdf_file):
 
 
 def launch_setup(context, *args, **kwargs):
-    urdf_file_arg = LaunchConfiguration('urdf_file').perform(context)
     moveit_config_package = LaunchConfiguration('moveit_config_package').perform(context)
     actions = []
 
     # Resolve URDF file: uses urdf_file if given, or extracts config/*.urdf.xacro from the package
-    urdf_file = resolve_urdf(urdf_file_arg, moveit_config_package)
+    urdf_file = resolve_urdf(moveit_config_package)
 
     # Generate altered descriptions
     ros_desc, gazebo_desc, robot_name = createDescriptions(urdf_file)
@@ -316,9 +306,8 @@ def launch_setup(context, *args, **kwargs):
             'tolerance': 1e-5,
             'input_action_name': LaunchConfiguration('joint_state_transformer_input_action'),
             'output_action_name': '/forward_position_controller/follow_joint_trajectory',
-            'use_sim_time': True,
-        }],
-        condition=IfCondition(LaunchConfiguration('launch_joint_state_transformer'))
+            'use_sim_time': True
+        }]
     )
 
     # 8. MoveGroup (configured via MoveItConfigsBuilder with injected altered URDF)
@@ -335,8 +324,6 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # 9. RViz2 (optional)
-    if LaunchConfiguration('launch_rviz'):
-        logging.info('bringup: start rviz, when selected')
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -348,8 +335,7 @@ def launch_setup(context, *args, **kwargs):
             moveit_config.robot_description_kinematics,
             moveit_config.planning_pipelines,
             {'use_sim_time': True},
-        ],
-        condition=IfCondition(LaunchConfiguration('launch_rviz'))
+        ]
     )
 
     actions.extend([
@@ -372,28 +358,12 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'moveit_config_package',
-            default_value='',
             description='MoveIt configuration package name (e.g. a_00036)'
-        ),
-        DeclareLaunchArgument(
-            'urdf_file',
-            default_value='',
-            description='Path to raw URDF (optional, auto-extracted from moveit_config_package/config/*.urdf.xacro if omitted)'
-        ),
-        DeclareLaunchArgument(
-            'launch_joint_state_transformer',
-            default_value='true',
-            description='Launch joint_state_transformer to map MoveIt trajectories to actuated joints'
         ),
         DeclareLaunchArgument(
             'joint_state_transformer_input_action',
             default_value='/ee_controller/follow_joint_trajectory',
             description='Input action name for joint_state_transformer'
-        ),
-        DeclareLaunchArgument(
-            'launch_rviz',
-            default_value='true',
-            description='Whether to launch RViz2'
         ),
         OpaqueFunction(function=launch_setup)
     ])
