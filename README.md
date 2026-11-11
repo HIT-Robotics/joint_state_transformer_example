@@ -40,20 +40,23 @@ The repository includes the following packages:
    git submodule update --init --recursive
    ```
 
-2. Start the container
+2. Add the 'buffer/install', 'buffer/build' and 'buffer/log' create folder to a 'buffer' directory or remove them from the compose
+   The compose file references to a buffer folder that holds the built packages for container rebuilts to save compiling time after adaptations on the container. 
+
+3. Start the container
 
    ```bash
    docker compose up
    ```  
 
-3. Inside the container: Build (since we need to rebuild pinocchio to link against the new urdfdom forks, this may take a while)
+4. Inside the container: Build (since we need to rebuild pinocchio to link against the new urdfdom forks, this may take a while)
 
    ```bash
    colcon build
    source install/setup.bash
    ```
 
-4. Inside the container: Start the simulation using the bringup package
+5. Inside the container: Start the simulation using the bringup package
 
    ```bash
    ros2 launch bringup sim.launch.py moveit_config_package:=<moveit_config_package_name> joint_state_transformer_input_action:=<moveit_output_action> joint_state_transformer_output_action:=<ros2_control_input_action>
