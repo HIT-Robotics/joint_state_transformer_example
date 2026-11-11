@@ -46,7 +46,7 @@ The repository includes the following packages:
    docker compose up
    ```  
 
-3. Inside the container: Build (this may take a while)
+3. Inside the container: Build (since we need to rebuild pinocchio to link against the new urdfdom forks, this may take a while)
 
    ```bash
    colcon build
@@ -56,7 +56,7 @@ The repository includes the following packages:
 4. Inside the container: Start the simulation using the bringup package
 
    ```bash
-   ros2 launch bringup sim.launch.py moveit_config_package:=<moveit_config_package_name> joint_state_transformer_input_action:=<moveit_output_action>
+   ros2 launch bringup sim.launch.py moveit_config_package:=<moveit_config_package_name> joint_state_transformer_input_action:=<moveit_output_action> joint_state_transformer_output_action:=<ros2_control_input_action>
    ```
 
 

@@ -305,7 +305,7 @@ def launch_setup(context, *args, **kwargs):
             'max_iterations': 100,
             'tolerance': 1e-5,
             'input_action_name': LaunchConfiguration('joint_state_transformer_input_action'),
-            'output_action_name': '/forward_position_controller/follow_joint_trajectory',
+            'output_action_name': LaunchConfiguration('joint_state_transformer_output_action'),
             'use_sim_time': True
         }]
     )
@@ -362,8 +362,13 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'joint_state_transformer_input_action',
-            default_value='/ee_controller/follow_joint_trajectory',
+            default_value='/joint_state_transformer/follow_joint_trajectory',
             description='Input action name for joint_state_transformer'
+        ),        
+        DeclareLaunchArgument(
+            'joint_state_transformer_output_action',
+            default_value='/forward_position_controller/follow_joint_trajectory',
+            description='Output action name for joint_state_transformer'
         ),
         OpaqueFunction(function=launch_setup)
     ])
