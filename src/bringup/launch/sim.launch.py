@@ -146,17 +146,20 @@ def createDescriptions(urdf_file):
     for elem in urdf_tree.getroot().findall('ros2_control'):
         urdf_tree.getroot().remove(elem)
 
-    # Solve loops and update joint zero positions
-    logging.info('bringup: close kinematic tree structure in description to comply with the constraints')
-    urdf_tree, violations = close_loop(urdf_tree, robot_model)
+    # add ros2_control elements to connect with gazebo to the URDF
+    #TODO: Change the ros2_control tags to a xacro file so that only the gazebo package must be adapted
     urdf_tree = add_ros2_control(urdf_tree, active_joints)
     urdf_tree = add_gz_ros2_control(urdf_tree, temp_yaml_path)
 
-    # ros_desc: the kinematically closed model for ROS (robot_state_publisher & MoveIt)
+    # ros_desc: The basic URDF with ros2_control elements
     logging.info('bringup: extract description for ROS')
     ros_desc = etree.tostring(urdf_tree, encoding='unicode')
 
-    # gazebo_desc: adds simulation physics elements for Gazebo Sim
+    # close loop for gazebo simulation. IMPORTANT: Since the active joints are controlled via rs2_control, the staate of these must remain the same as in the description
+    logging.info('bringup: close kinematic tree structure in description to comply with the constraints')
+    urdf_tree, violations = close_loop(urdf_tree, robot_model)
+
+    # gazebo_desc: adds simulation physics elements and detachable joints to close the loop for Gazebo Sim
     logging.info('bringup: add gazebo elements')
     urdf_tree = addDetachableJoints(urdf_tree, violations)
     urdf_tree = addMassesToDummyLinks(urdf_tree)
@@ -175,6 +178,7 @@ def launch_setup(context, *args, **kwargs):
 
     # Generate altered descriptions
     ros_desc, gazebo_desc, robot_name = createDescriptions(urdf_file)
+    #ros_desc = etree.tostring(etree.parse(urdf_file), encoding='unicode')
 
     # Dump descriptions to temporary URDF files
     logging.info('bringup: create dummy urdf files')
