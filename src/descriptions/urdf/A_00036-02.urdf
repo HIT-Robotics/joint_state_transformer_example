@@ -8,6 +8,13 @@
       <workspace diameter="1.2" height="0.2" z_offset="0.672"/>
       <payload max="3.0" threshold="0.0"/>
     </info>
+    <!-- Global material definitions -->
+    <material name="aluminium">
+      <color rgba="0.792 0.812 0.831 1.0"/>
+    </material>
+    <material name="carbon">
+      <color rgba="0.05 0.05 0.05 1.0"/>
+    </material>
     <!-- Base link and end effector -->
     <!-- Robot base link without inertia, because it is not in motion -->
     <link name="base_link">
@@ -16,6 +23,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Kopfplatte.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="aluminium"/>
       </visual>
     </link>
     <link name="tool_holder">
@@ -26,6 +34,7 @@
           <mesh filename="package://descriptions/meshes/A_00036/Werkzeugtraeger.stl" scale="0.001 0.001 0.001"/>
           <mesh filename="package://descriptions/meshes/A_00036/Flansch.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="aluminium"/>
       </visual>
       <visual>
         <origin rpy="1.570 1.570 0.0" xyz="0.07 0.0 0.022"/>
@@ -33,6 +42,7 @@
           <mesh filename="package://descriptions/meshes/A_00036/Unterarmverbinder.stl" scale="0.001 0.001 0.001"/>
           <!--cylinder length="${$(arg radius_ee)/10}" radius="${$(arg radius_ee)}"/-->
         </geometry>
+          <material name="aluminium"/>
       </visual>
       <visual>
         <origin rpy="1.570 1.570 2.0943951023931953" xyz="-0.03499999999999999 0.06062177826491071 0.022"/>
@@ -40,6 +50,7 @@
           <mesh filename="package://descriptions/meshes/A_00036/Unterarmverbinder.stl" scale="0.001 0.001 0.001"/>
           <!--cylinder length="${$(arg radius_ee)/10}" radius="${$(arg radius_ee)}"/-->
         </geometry>
+          <material name="aluminium"/>
       </visual>
       <visual>
         <origin rpy="1.570 1.570 4.1887902047863905" xyz="-0.03500000000000003 -0.06062177826491069 0.022"/>
@@ -47,6 +58,7 @@
           <mesh filename="package://descriptions/meshes/A_00036/Unterarmverbinder.stl" scale="0.001 0.001 0.001"/>
           <!--cylinder length="${$(arg radius_ee)/10}" radius="${$(arg radius_ee)}"/-->
         </geometry>
+          <material name="aluminium"/>
       </visual>
       <inertial>
         <mass value="1.542"/>
@@ -60,6 +72,7 @@
           <!--cylinder length="${$(arg radius_ee)/11}" radius="${$(arg radius_ee)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Flansch.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="aluminium"/>
       </visual>
       <inertial>
         <mass value="0.001"/>
@@ -80,6 +93,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Oberarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.14 0 0"/>
@@ -100,6 +114,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.48 0 0"/>
@@ -120,6 +135,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.48 0 0"/>
@@ -135,6 +151,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarmverbinder.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="aluminium"/>
       </visual>
     </link>
     <link name="Chain1_link_virtual_2"/>
@@ -216,6 +233,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Oberarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.14 0 0"/>
@@ -236,6 +254,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.48 0 0"/>
@@ -256,6 +275,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.48 0 0"/>
@@ -271,6 +291,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarmverbinder.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="aluminium"/>
       </visual>
     </link>
     <link name="Chain2_link_virtual_2"/>
@@ -352,6 +373,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Oberarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.14 0 0"/>
@@ -372,6 +394,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.48 0 0"/>
@@ -392,6 +415,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarm.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <origin xyz="0.48 0 0"/>
@@ -407,6 +431,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Unterarmverbinder.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="aluminium"/>
       </visual>
     </link>
     <link name="Chain3_link_virtual_2"/>
@@ -490,6 +515,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Teleskopwelle_oben.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="aluminium"/>
       </visual>
     </link>
     <link name="Chain4_bottom_link">
@@ -499,6 +525,7 @@
           <!--cylinder length="0.1" radius="${$(arg radius_base)}"/-->
           <mesh filename="package://descriptions/meshes/A_00036/Teleskopwelle_unten.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+          <material name="carbon"/>
       </visual>
       <inertial>
         <mass value="0.939"/>
