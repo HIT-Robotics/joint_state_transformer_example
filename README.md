@@ -23,7 +23,7 @@ The repository includes the following packages:
 - **robot_model**: solves constraint equations for closed-loop structures
 - **joint_state_transformer** package: uses the **robot_model** to transform the trajectory and calculate the passive angles
 - **descriptions**: provides the URDF files and meshes for the robots
-- **constraint_to_gazeob**: scripts to close the loops of an URDF using the **robot_model** package and create the gazebo specific elements
+- **constraint_to_gazebo**: scripts to close the loops of an URDF using the **robot_model** package and create the gazebo specific elements
 - **bringup**: Package to close the loops and start gazebo, and the ros packages for the robot using a choosen robot specific MoveIt-Package
 - robot-specific MoveIt packages in the demo folder: provide a simple demonstration with RViz using the demo.launch.py
 
@@ -40,8 +40,8 @@ The repository includes the following packages:
    git submodule update --init --recursive
    ```
 
-2. Add the 'buffer/install', 'buffer/build' and 'buffer/log' create folder to a 'buffer' directory or remove them from the compose
-   The compose file references to a buffer folder that holds the built packages for container rebuilts to save compiling time after adaptations on the container. 
+2. Create the 'buffer' directory with the 'build', 'install' and 'log' subfolders, or remove these volume mounts from the compose file.
+   The compose file references a buffer folder that holds the built packages for container rebuilds, to save compiling time after adaptations on the container. 
 
 3. Start the container
 
@@ -49,7 +49,7 @@ The repository includes the following packages:
    docker compose up
    ```  
 
-4. Inside the container: Build (since we need to rebuild pinocchio to link against the new urdfdom forks, this may take a while)
+4. Inside the container: Build (since we need to rebuild pinocchio to link the urdfdom forks, this may take a while)
 
    ```bash
    colcon build
@@ -59,7 +59,13 @@ The repository includes the following packages:
 5. Inside the container: Start the simulation using the bringup package
 
    ```bash
-   ros2 launch bringup sim.launch.py moveit_config_package:=<moveit_config_package_name> joint_state_transformer_input_action:=<moveit_output_action> joint_state_transformer_output_action:=<ros2_control_input_action>
+   ros2 launch bringup sim.launch.py moveit_config_package:=<moveit_config_package_name> urdf_file:=<urdf_file_in_config_directory> joint_state_transformer_input_action:=<moveit_output_action> joint_state_transformer_output_action:=<ros2_control_input_action>
+   ```
+
+   Example for the included demo robot (the URDF/Xacro is resolved inside the `config` directory of the given MoveIt config package):
+
+   ```bash
+   ros2 launch bringup sim.launch.py moveit_config_package:=a_00036 urdf_file:=DELTA_4DoF_γ.urdf.xacro
    ```
 
 

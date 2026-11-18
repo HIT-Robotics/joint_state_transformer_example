@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <xacro:macro name="DELTA_4DoF_γ_ros2_control" params="name initial_positions_file">
+    <xacro:macro name="DELTA_4DoF_γ_ros2_control"  params="name initial_positions_file plugin:=mock_components/GenericSystem">
         <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
-
+        
         <ros2_control name="${name}" type="system">
             <hardware>
                 <!-- By default, set up controllers for simulation. This won't work on real hardware -->
-                <plugin>mock_components/GenericSystem</plugin>
+                <plugin>${plugin}</plugin>
             </hardware>
             <joint name="Chain1_1">
                 <command_interface name="position"/>
