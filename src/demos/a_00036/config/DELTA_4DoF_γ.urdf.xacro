@@ -1,14 +1,36 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="DELTA_4DoF_γ">
     <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
-
+    <xacro:arg name="hardware" default="mock" />
+    <xacro:property name="hardware" value="$(arg hardware)"/>
     <!-- Import DELTA_4DoF_γ urdf file -->
-    <xacro:include filename="/home/robot/ws/src/descriptions/urdf/A_00036-02.urdf" />
 
+    <xacro:include filename="$(find descriptions)/urdf/A_00036-02.urdf" />
+    
+    <link name="world"/>
+
+     <!--xacro:a_00036/-->
+
+    <joint name="world_joint" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 1.5" rpy="0 0 0"/>
+    </joint>
     <!-- Import control_xacro -->
+    
     <xacro:include filename="DELTA_4DoF_γ.ros2_control.xacro" />
 
+    <xacro:if value="${hardware == 'mock'}">
+    <xacro:DELTA_4DoF_γ_ros2_control name="FakeSystem" plugin="mock_components/GenericSystem" initial_positions_file="$(arg initial_positions_file)"/>
+    </xacro:if>
 
-    <xacro:DELTA_4DoF_γ_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+    <xacro:if value="${hardware == 'gazebo'}">
+    <xacro:DELTA_4DoF_γ_ros2_control name="GazeboSimSystem" plugin="gz_ros2_control/GazeboSimSystem" initial_positions_file="$(arg initial_positions_file)"/>
+    <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+    <parameters>$(find a_00036)/config/ros2_controllers.yaml</parameters>
+    </plugin>
+    </gazebo>
+    </xacro:if>
 
 </robot>

@@ -1,9 +1,5 @@
 import logging
 import os
-import re
-import tempfile
-import yaml
-import numpy as np
 from lxml import etree
 import xacro
 
@@ -12,11 +8,9 @@ from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
     OpaqueFunction,
-    SetEnvironmentVariable,
     RegisterEventHandler,
 )
 from launch.event_handlers import OnProcessExit
-from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -26,106 +20,10 @@ from robot_model import RobotModel
 
 from constraint_to_gazebo.constraint_to_detachable_joint import addDetachableJoints
 from constraint_to_gazebo.add_masses import addMassesToDummyLinks
-from constraint_to_gazebo.add_world_link import addWorldLink
 from constraint_to_gazebo.close_loop import close_loop
-from constraint_to_gazebo.add_ros2_control import add_ros2_control, add_gz_ros2_control
 
 
-def resolve_urdf(moveit_config_package):
-    """
-    Resolves the raw robot URDF/ARDF model file.
-    Inspects 'config/*.urdf.xacro' in the MoveIt configuration package,
-    finds the <xacro:include> referencing the .urdf or .ardf model, and resolves its path.
-    """
-    pkg_share = get_package_share_directory(moveit_config_package)
-    config_dir = os.path.join(pkg_share, 'config')
-
-    if not os.path.exists(config_dir):
-        raise FileNotFoundError(
-            f"Config directory '{config_dir}' not found in package '{moveit_config_package}'."
-        )
-
-    # 1. Look for config/*.urdf.xacro and extract the .urdf / .ardf include
-    xacro_files = [f for f in os.listdir(config_dir) if f.endswith('.urdf.xacro')]
-    if xacro_files:
-        xacro_path = os.path.join(config_dir, xacro_files[0])
-        xacro_tree = etree.parse(xacro_path)
-
-        for elem in xacro_tree.getroot().iter():
-            if not isinstance(elem.tag, str):
-                continue
-            if 'include' in elem.tag:
-                filename = elem.get('filename', '')
-                # Find the import of the robot model (.urdf or .ardf)
-                if any(ext in filename.lower() for ext in ['.urdf', '.ardf']):
-                    # Resolve $(find <package_name>) if present
-                    match = re.search(r'\$\(find\s+([^\)]+)\)', filename)
-                    if match:
-                        ref_pkg = match.group(1)
-                        ref_pkg_share = get_package_share_directory(ref_pkg)
-                        resolved_path = filename.replace(match.group(0), ref_pkg_share)
-                    elif not os.path.isabs(filename):
-                        resolved_path = os.path.normpath(os.path.join(config_dir, filename))
-                    else:
-                        resolved_path = filename
-
-                    # If the included file is a xacro, process it to clean URDF
-                    if resolved_path.endswith('.xacro'):
-                        doc = xacro.process_file(resolved_path)
-                        temp_urdf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.urdf')
-                        temp_urdf.write(doc.toxml())
-                        temp_urdf_path = temp_urdf.name
-                        temp_urdf.close()
-                        return temp_urdf_path
-
-                    if os.path.exists(resolved_path):
-                        return resolved_path
-                    else:
-                        raise FileNotFoundError(f"Included robot model file not found: '{resolved_path}'.")
-
-    # 2. Fallback: check for standalone *.urdf or *.ardf directly in config/
-    direct_files = [f for f in os.listdir(config_dir) if f.endswith(('.urdf', '.ardf'))]
-    if direct_files:
-        return os.path.join(config_dir, direct_files[0])
-
-    raise FileNotFoundError(
-        f"Could not locate robot .urdf/.ardf file from package '{moveit_config_package}'."
-    )
-
-
-def createRosControlConfig(active_joints):
-    """Create the ros2_control YAML configuration for Gazebo simulation."""
-    joint_list = [str(j) for j in active_joints]
-
-    controller_config = {
-        "controller_manager": {
-            "ros__parameters": {
-                "update_rate": 100,
-                "joint_state_broadcaster": {
-                    "type": "joint_state_broadcaster/JointStateBroadcaster"
-                },
-                "forward_position_controller": {
-                    "type": "joint_trajectory_controller/JointTrajectoryController"
-                }
-            }
-        },
-        "forward_position_controller": {
-            "ros__parameters": {
-                "joints": joint_list,
-                "command_interfaces": ["position"],
-                "state_interfaces": ["position", "velocity"]
-            }
-        }
-    }
-
-    temp_yaml = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yaml')
-    yaml.dump(controller_config, temp_yaml)
-    temp_yaml_path = temp_yaml.name
-    temp_yaml.close()
-    return temp_yaml_path
-
-
-def createDescriptions(urdf_file):
+def createDescriptions(urdf_desc):
     """
     Process the constraint-based URDF:
     - Removes mock ros2_control hardware tags from MoveIt config (e.g. FakeSystem).
@@ -134,26 +32,10 @@ def createDescriptions(urdf_file):
     - Injects Gazebo-specific physics (detachable joints, dummy masses, world link).
     """
     logging.info('bringup: load robot model')
-    robot_model = RobotModel(urdf_file)
-    urdf_tree = etree.parse(urdf_file)
+    robot_model = RobotModel(urdf_desc)
+    urdf_tree = etree.ElementTree(etree.fromstring(urdf_desc))
 
     robot_name = urdf_tree.getroot().get('name')
-    active_joints = np.array(robot_model.joint_names)[robot_model.joints.active_joints.astype(bool)]
-    temp_yaml_path = createRosControlConfig(active_joints)
-
-    # Remove any pre-existing mock ros2_control elements (e.g. FakeSystem with mock_components)
-    
-    for elem in urdf_tree.getroot().findall('ros2_control'):
-        urdf_tree.getroot().remove(elem)
-
-    # add ros2_control elements to connect with gazebo to the URDF
-    #TODO: Change the ros2_control tags to a xacro file so that only the gazebo package must be adapted
-    urdf_tree = add_ros2_control(urdf_tree, active_joints)
-    urdf_tree = add_gz_ros2_control(urdf_tree, temp_yaml_path)
-
-    # ros_desc: The basic URDF with ros2_control elements
-    logging.info('bringup: extract description for ROS')
-    ros_desc = etree.tostring(urdf_tree, encoding='unicode')
 
     # close loop for gazebo simulation. IMPORTANT: Since the active joints are controlled via rs2_control, the staate of these must remain the same as in the description
     logging.info('bringup: close kinematic tree structure in description to comply with the constraints')
@@ -163,38 +45,35 @@ def createDescriptions(urdf_file):
     logging.info('bringup: add gazebo elements')
     urdf_tree = addDetachableJoints(urdf_tree, violations)
     urdf_tree = addMassesToDummyLinks(urdf_tree)
-    urdf_tree = addWorldLink(urdf_tree, offset=[0.0, 0.0, 1.5])
     gazebo_desc = etree.tostring(urdf_tree, encoding='unicode')
 
-    return ros_desc, gazebo_desc, robot_name
+    return gazebo_desc, robot_name
 
 
 def launch_setup(context, *args, **kwargs):
     moveit_config_package = LaunchConfiguration('moveit_config_package').perform(context)
+    
+    config_dir = os.path.join(get_package_share_directory(moveit_config_package), 'config')
+    # Resolve URDF file: uses urdf_file if given, or extracts config/*.urdf.xacro from the package
+    urdf_file = os.path.join(config_dir, LaunchConfiguration('urdf_file').perform(context))
+    # If the included file is a xacro, process it to clean URDF
+    if urdf_file.endswith('.xacro'):
+        ros_desc = xacro.process_file(urdf_file,  
+                mappings={
+                "hardware": "gazebo",}).toxml()
+    else:
+        with open(urdf_file, "r", encoding="utf-8") as f:
+            ros_desc = f.read()
     actions = []
 
-    # Resolve URDF file: uses urdf_file if given, or extracts config/*.urdf.xacro from the package
-    urdf_file = resolve_urdf(moveit_config_package)
-
     # Generate altered descriptions
-    ros_desc, gazebo_desc, robot_name = createDescriptions(urdf_file)
-    #ros_desc = etree.tostring(etree.parse(urdf_file), encoding='unicode')
-
-    # Dump descriptions to temporary URDF files
-    logging.info('bringup: create dummy urdf files')
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.urdf') as ros_urdf_file:
-        ros_urdf_file.write(ros_desc)
-        ros_desc_path = ros_urdf_file.name
-
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.urdf') as gz_urdf_file:
-        gz_urdf_file.write(gazebo_desc)
-        gazebo_desc_path = gz_urdf_file.name
+    gazebo_desc, robot_name = createDescriptions(ros_desc)
 
     # 1. Use MoveItConfigsBuilder to load package configs with the altered URDF injected!
     logging.info('bringup: create moveit config with updated urdf')
     moveit_config = (
         MoveItConfigsBuilder(robot_name, package_name=moveit_config_package)
-        .robot_description(file_path=ros_desc_path)
+        .robot_description(file_path=urdf_file)
         .to_moveit_configs()
     )
 
@@ -229,7 +108,7 @@ def launch_setup(context, *args, **kwargs):
         name='spawn_robot',
         arguments=[
             '-v', '4',
-            '-file', gazebo_desc_path,
+            '-string', gazebo_desc,
             '-name', robot_name,
             '-allow_renaming', 'false'
         ],
@@ -248,6 +127,13 @@ def launch_setup(context, *args, **kwargs):
             '--controller-manager-timeout', '60'
         ],
         output='screen'
+    )
+
+    delay_joint_state_broadcaster = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawn_robot,
+            on_exit=[joint_state_broadcaster_spawner],
+        )
     )
 
     logging.info('bringup: start position controller')    
@@ -330,7 +216,7 @@ def launch_setup(context, *args, **kwargs):
         robot_state_publisher,
         gazebo,
         spawn_robot,
-        joint_state_broadcaster_spawner,
+        delay_joint_state_broadcaster,
         delay_position_controller_spawner,
         clock_bridge,
         joint_state_transformer_node,
@@ -347,6 +233,10 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'moveit_config_package',
             description='MoveIt configuration package name (e.g. a_00036)'
+        ),
+        DeclareLaunchArgument(
+            'urdf_file',
+            description='URDF file or Xacro file for the choosen robot in the config packages config directory'
         ),
         DeclareLaunchArgument(
             'joint_state_transformer_input_action',
