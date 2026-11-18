@@ -73,7 +73,7 @@ def launch_setup(context, *args, **kwargs):
     logging.info('bringup: create moveit config with updated urdf')
     moveit_config = (
         MoveItConfigsBuilder(robot_name, package_name=moveit_config_package)
-        .robot_description(file_path=urdf_file)
+        .robot_description(file_path=urdf_file,  mappings={"hardware": "gazebo"})
         .to_moveit_configs()
     )
 
