@@ -1,13 +1,14 @@
-# constraint_to_gazebo_example
+# joint_state_transformer_example
 <p align="center">
   <img src="docs/logos/autonox_Robotics_Logo.png" height="60" style="margin-right: 40px;">
   <img src="docs/logos/hhn_logo.png" height="80">
 </p>
 
 
-This repository demonstrates the usage of the **constraint_to_gazebo** for constrained robot kinematics. It closes the loops created with **constraint** elements of the URDF.  Each robot is provided as its own package. The robot-specific URDF and meshes are provided in the **descriptions** package.
+This repository demonstrates the usage of the **constraint_to_gazebo** and the **joint_state_transformer** for constrained robot kinematics. It closes the loops created with **constraint** elements of the URDF.  Each robot is provided as its own package. The robot-specific URDF and meshes are provided in the **descriptions** package.
 
-The *constraint_to_gazebo* closes the loops and helps to create the gazebo specific elements for simulation.
+The *constraint_to_gazebo* closes the loops in the description and helps to create the gazebo specific elements for simulation.
+The *joint_state_transformer* closes the loops in the ROS Environment during runtime to maintin the closed state of the robot.
 
 The following robots are supported at the moment:
 
@@ -67,12 +68,15 @@ The repository includes the following packages:
    ```bash
    ros2 launch bringup sim.launch.py moveit_config_package:=a_00036 urdf_file:=DELTA_4DoF_γ.urdf.xacro
    ```
-
-
+   
 
 ## Roadmap
 
 - Add more examples (e.g. the Para-Engineer robots)
+- Test the process with real hardware
+- Use a kinematics plugin to solve kinematics in MoveIt and enable a collision detection (Depending on the pull request to URDFDOM)
+- Add a robot_state_publisher fork to update the joint state directly without the joint_state_transformer (Depending on the pull request to URDFDOM)
+
   
 ## Acknowledgement
 
